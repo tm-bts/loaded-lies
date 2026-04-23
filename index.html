@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loaded Lies</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="vignette"></div>
+
+  <main class="stage">
+    <header class="title-block">
+      <h1 class="title">LOADED LIES</h1>
+      <p class="subtitle">Trust nothing. Especially yourself.</p>
+    </header>
+
+    <section id="auth-card" class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Log In</button>
+        <button class="tab" data-tab="signup">Sign Up</button>
+      </div>
+
+      <form id="login-form" class="form active" autocomplete="on">
+        <label>
+          Email
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required minlength="6" autocomplete="current-password" />
+        </label>
+        <button type="submit" class="primary">Enter</button>
+      </form>
+
+      <form id="signup-form" class="form" autocomplete="on">
+        <label>
+          Username
+          <input type="text" name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required minlength="6" autocomplete="new-password" />
+        </label>
+        <button type="submit" class="primary">Create Account</button>
+      </form>
+
+      <p id="auth-msg" class="msg" aria-live="polite"></p>
+    </section>
+
+    <section id="lobby-card" class="card hidden">
+      <h2>Welcome, <span id="user-name">player</span>.</h2>
+      <p class="muted">Lobby coming next.</p>
+      <button id="logout-btn" class="secondary">Log Out</button>
+    </section>
+  </main>
+
+  <script type="module" src="supabase.js"></script>
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
