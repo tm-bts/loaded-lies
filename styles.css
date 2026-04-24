@@ -219,3 +219,163 @@ button.secondary:hover {
   font-family: "Cormorant Garamond", "Georgia", serif;
   letter-spacing: 0.05em;
 }
+
+.lobby-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+/* ======== Game ======== */
+.card.wide {
+  width: min(720px, 100%);
+}
+
+.players-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.player {
+  flex: 1;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+
+.player.active {
+  border-color: var(--accent);
+  background: rgba(192, 57, 43, 0.08);
+  box-shadow: 0 0 20px rgba(192, 57, 43, 0.2);
+}
+
+.player.target {
+  border-color: var(--ink-dim);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.player.dead {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.player-name {
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+
+.player-hp {
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+}
+
+.player-tag {
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  min-height: 1em;
+}
+
+.chamber {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}
+
+.slot {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--field-border);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.slot.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(192, 57, 43, 0.6);
+}
+
+.slot.consumed.empty { color: var(--ink-dim); opacity: 0.5; }
+.slot.consumed.bullet { color: var(--accent); opacity: 0.8; }
+
+.game-status {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 1rem;
+}
+
+.game-actions {
+  min-height: 4rem;
+  margin-bottom: 1rem;
+}
+
+.game-actions p {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-row button {
+  flex: 1;
+  margin-top: 0;
+}
+
+button.primary.danger {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+button.primary.danger:hover {
+  background: rgba(192, 57, 43, 0.15);
+}
+
+.game-log {
+  max-height: 9rem;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin-bottom: 1rem;
+}
+
+.log-line {
+  padding: 0.1rem 0;
+}
+.log-line:last-child {
+  color: var(--ink);
+}
+
+#game-exit {
+  width: 100%;
+}

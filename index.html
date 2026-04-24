@@ -55,12 +55,25 @@
 
     <section id="lobby-card" class="card hidden">
       <h2>Welcome, <span id="user-name">player</span>.</h2>
-      <p class="muted">Lobby coming next.</p>
-      <button id="logout-btn" class="secondary">Log Out</button>
+      <p class="muted">Pick a game.</p>
+      <div class="lobby-actions">
+        <button id="play-bots-btn" class="primary">Play vs Bots</button>
+        <button id="logout-btn" class="secondary">Log Out</button>
+      </div>
+    </section>
+
+    <section id="game-card" class="card wide hidden">
+      <div id="game-players" class="players-row"></div>
+      <div id="game-chamber" class="chamber"></div>
+      <p id="game-status" class="game-status"></p>
+      <div id="game-actions" class="game-actions"></div>
+      <div id="game-log" class="game-log" aria-live="polite"></div>
+      <button id="game-exit" class="secondary">Quit to Lobby</button>
     </section>
   </main>
 
   <script type="module" src="supabase.js"></script>
   <script type="module" src="auth.js"></script>
+  <script type="module" src="game.js"></script>
 </body>
 </html>

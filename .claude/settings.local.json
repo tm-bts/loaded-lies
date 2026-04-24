@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sI \"https://tm-bts.github.io/loaded-lies/assets/rev.jpg\")"
+    ]
+  }
+}
