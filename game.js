@@ -7,6 +7,92 @@ const CHAMBER_SIZE = 6;
 const BULLETS = 2;
 const START_HP = 3;
 
+// ---------- Flavor pools ----------
+const BOT_NAMES = [
+  "Drifter", "Calico", "Hatch", "Mule", "Vicente", "Rook", "Pilgrim",
+  "Flint", "Magpie", "Deacon", "Vega", "Dusty", "Crane", "Iris",
+  "Hollow", "Wren", "Creed", "Scrap", "Ash", "Solas", "Mercer",
+  "Juno", "Cottonmouth", "Bishop", "Ruby", "Nox", "Cassidy", "Teller",
+];
+
+const CLAIM_VERBS = {
+  empty: [
+    "shrugs and calls it",
+    "drawls",
+    "barely looks up",
+    "says, flat",
+    "says",
+    "taps the table",
+    "mutters",
+  ],
+  loaded: [
+    "grins",
+    "leans in",
+    "stares across the table",
+    "says, slow",
+    "says",
+    "sets their jaw",
+    "doesn't blink",
+  ],
+};
+
+const BELIEVE_LINES = [
+  "lets it ride.",
+  "shrugs it off.",
+  "nods, says nothing.",
+  "takes the word.",
+  "waves it through.",
+];
+
+const CHALLENGE_LINES = [
+  "calls the bluff.",
+  "slams the table.",
+  "says, 'liar.'",
+  "laughs, calls it.",
+  "points. 'no.'",
+];
+
+const CLICK_LINES = [
+  "Click. Empty.",
+  "Nothing. Dry chamber.",
+  "Click. The room exhales.",
+  "Hammer falls. Silence.",
+  "Empty. Just oil and air.",
+];
+
+const BANG_LINES = [
+  "BANG.",
+  "The hammer drops. Crack.",
+  "Muzzle flash.",
+  "Powder and blood.",
+  "CRACK.",
+];
+
+const HIT_LINES = [
+  (n) => `${n} eats the round.`,
+  (n) => `${n} takes a hit.`,
+  (n) => `${n} buckles, stays up.`,
+  (n) => `${n} bleeds.`,
+  (n) => `${n} doesn't flinch. Much.`,
+];
+
+const OUT_LINES = [
+  (n) => `${n} is out.`,
+  (n) => `${n} slumps. Done.`,
+  (n) => `${n} leaves the table.`,
+  (n) => `${n} has nothing left.`,
+];
+
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const pickN = (arr, n) => {
+  const copy = arr.slice();
+  const out = [];
+  while (out.length < n && copy.length) {
+    out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+  }
+  return out;
+};
+
 const el = {
   card: document.getElementById("game-card"),
   lobbyCard: document.getElementById("lobby-card"),
@@ -41,11 +127,12 @@ el.exitBtn?.addEventListener("click", () => {
 
 function startGame(humanName) {
   clearTimeout(botTimer);
+  const [b1, b2] = pickN(BOT_NAMES, 2);
   state = {
     players: [
       { id: "you", name: humanName, hp: START_HP, isBot: false },
-      { id: "bot1", name: "Drifter", hp: START_HP, isBot: true },
-      { id: "bot2", name: "Calico", hp: START_HP, isBot: true },
+      { id: "bot1", name: b1, hp: START_HP, isBot: true },
+      { id: "bot2", name: b2, hp: START_HP, isBot: true },
     ],
     turn: 0,
     chamber: newChamber(),
@@ -172,7 +259,8 @@ function submitClaim(claim) {
   state.phase = "DECISION";
 
   const claimer = state.players[claimerIdx];
-  pushLog(`${claimer.name} claims next slot is ${claim.toUpperCase()}.`);
+  const verb = pick(CLAIM_VERBS[claim]);
+  pushLog(`${claimer.name} ${verb}: "${claim.toUpperCase()}."`);
   render();
 
   if (state.players[targetIdx].isBot) botTimer = setTimeout(botDecide, 1200);
@@ -196,24 +284,23 @@ function resolveDecision(decision) {
   const actual = actualLoaded ? "loaded" : "empty";
 
   if (decision === "challenge") {
-    pushLog(`${target.name} calls the bluff.`);
+    pushLog(`${target.name} ${pick(CHALLENGE_LINES)}`);
     const liar = (claim === actual) ? target : claimer;
     const liarIdx = (liar === target) ? targetIdx : claimerIdx;
-    pushLog(`Slot reveals: ${actual.toUpperCase()}. ${liar.name} takes the hit.`);
+    pushLog(`Reveal — ${actual.toUpperCase()}. ${pick(HIT_LINES)(liar.name)}`);
     liar.hp -= 1;
     animateHit(liarIdx);
-    if (liar.hp <= 0) pushLog(`${liar.name} is out.`);
+    if (liar.hp <= 0) pushLog(pick(OUT_LINES)(liar.name));
   } else {
-    pushLog(`${target.name} lets it ride.`);
-    // Revolver swings to point at claimer before they pull
+    pushLog(`${target.name} ${pick(BELIEVE_LINES)}`);
     pointRevolverAt(claimerIdx);
     if (actualLoaded) {
       claimer.hp -= 1;
-      pushLog(`BANG. ${claimer.name} eats it.`);
+      pushLog(`${pick(BANG_LINES)} ${pick(HIT_LINES)(claimer.name)}`);
       setTimeout(() => animateHit(claimerIdx, true), 300);
-      if (claimer.hp <= 0) pushLog(`${claimer.name} is out.`);
+      if (claimer.hp <= 0) pushLog(pick(OUT_LINES)(claimer.name));
     } else {
-      pushLog(`Click. Empty.`);
+      pushLog(pick(CLICK_LINES));
       setTimeout(() => el.revolver.classList.add("click"), 300);
       setTimeout(() => el.revolver.classList.remove("click"), 700);
     }

@@ -56,8 +56,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
+  justify-content: flex-start;
+  padding: 2.5rem 1rem 3rem;
   gap: 2rem;
 }
 
@@ -244,12 +244,11 @@ button.secondary:hover {
 }
 
 .game-table {
-  --size: min(420px, 80vw);
-  --radius: calc(var(--size) * 0.36); /* where player tokens sit */
   position: relative;
-  width: var(--size);
-  height: var(--size);
+  width: min(360px, 100%);
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
+  isolation: isolate;
 }
 
 .table-rim {
@@ -286,7 +285,8 @@ button.secondary:hover {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(var(--size) * 0.22);
+  width: 24%;
+  aspect-ratio: 100 / 200;
   height: auto;
   transform: translate(-50%, -50%);
   transform-origin: 50% 54%; /* cylinder center */
@@ -341,10 +341,12 @@ button.secondary:hover {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 5.5rem;
-  height: 5.5rem;
-  margin: -2.75rem 0 0 -2.75rem;
-  transform: rotate(var(--angle)) translateY(calc(var(--radius) * -1)) rotate(calc(var(--angle) * -1));
+  width: 24%;
+  aspect-ratio: 1;
+  margin-left: -12%;
+  margin-top: -12%;
+  /* translateY uses the token's own height; -170% ≈ 40% of table radius */
+  transform: rotate(var(--angle)) translateY(-170%) rotate(calc(var(--angle) * -1));
   transition: transform 0.4s, opacity 0.3s, filter 0.3s;
 }
 
