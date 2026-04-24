@@ -1,14 +1,6 @@
 // =========================================================
-// Loaded Lies — single-player vs bots (v1)
-// Rules:
-//  - 1 human + 2 bots, 3 HP each.
-//  - Chamber has 6 slots, 2 bullets placed at random.
-//  - Active player claims the next slot is "empty" or "loaded".
-//  - Next living player decides BELIEVE or CHALLENGE.
-//    - CHALLENGE: slot revealed. Liar loses 1 HP.
-//    - BELIEVE: active pulls trigger on self. -1 HP if loaded.
-//  - Slot consumed either way. Turn passes. Chamber reloads when empty.
-//  - Last player standing wins.
+// Loaded Lies — single-player vs bots
+// Top-down table view. Revolver rotates to point at active player.
 // =========================================================
 
 const CHAMBER_SIZE = 6;
@@ -19,8 +11,10 @@ const el = {
   card: document.getElementById("game-card"),
   lobbyCard: document.getElementById("lobby-card"),
   playBtn: document.getElementById("play-bots-btn"),
-  players: document.getElementById("game-players"),
-  chamber: document.getElementById("game-chamber"),
+  table: document.getElementById("game-table"),
+  revolver: document.getElementById("revolver"),
+  flash: document.getElementById("muzzle-flash"),
+  tokens: document.getElementById("player-tokens"),
   status: document.getElementById("game-status"),
   actions: document.getElementById("game-actions"),
   log: document.getElementById("game-log"),
@@ -30,6 +24,7 @@ const el = {
 
 let state = null;
 let botTimer = null;
+let revolverAngle = 0; // cumulative rotation in degrees
 
 el.playBtn?.addEventListener("click", () => {
   el.lobbyCard.classList.add("hidden");
@@ -49,8 +44,8 @@ function startGame(humanName) {
   state = {
     players: [
       { id: "you", name: humanName, hp: START_HP, isBot: false },
-      { id: "bot1", name: "The Drifter", hp: START_HP, isBot: true },
-      { id: "bot2", name: "Miss Calico", hp: START_HP, isBot: true },
+      { id: "bot1", name: "Drifter", hp: START_HP, isBot: true },
+      { id: "bot2", name: "Calico", hp: START_HP, isBot: true },
     ],
     turn: 0,
     chamber: newChamber(),
@@ -59,8 +54,10 @@ function startGame(humanName) {
     pendingClaim: null,
     log: [],
   };
-  pushLog(`Chamber loaded. ${BULLETS} bullets. ${CHAMBER_SIZE} slots.`);
+  pushLog(`Chamber loaded. ${BULLETS} rounds among ${CHAMBER_SIZE} slots.`);
+  layoutTokens();
   render();
+  pointRevolverAt(state.turn, /*extraSpin*/ true);
   advance();
 }
 
@@ -91,9 +88,7 @@ function nextAliveFrom(fromIdx) {
   return fromIdx;
 }
 
-function nextTurn() {
-  state.turn = nextAliveFrom(state.turn);
-}
+function nextTurn() { state.turn = nextAliveFrom(state.turn); }
 
 function remainingBullets() {
   let b = 0;
@@ -102,15 +97,41 @@ function remainingBullets() {
   }
   return b;
 }
-
-function remainingSlots() {
-  return state.chamber.length - state.slotIndex;
+function remainingSlots() { return state.chamber.length - state.slotIndex; }
+function loadedProbability() {
+  const s = remainingSlots();
+  return s > 0 ? remainingBullets() / s : 0;
 }
 
-function loadedProbability() {
-  const slots = remainingSlots();
-  if (slots <= 0) return 0;
-  return remainingBullets() / slots;
+// ---------- Table layout ----------
+// Angle convention: 0° = top, 90° = right, 180° = bottom, 270° = left.
+// Human (index 0) sits at the bottom. Others spaced clockwise.
+function playerAngle(i, n) {
+  return (180 + i * (360 / n)) % 360;
+}
+
+function layoutTokens() {
+  const n = state.players.length;
+  el.tokens.innerHTML = state.players.map((p, i) => {
+    const angle = playerAngle(i, n);
+    return `<div class="player-token" data-idx="${i}" style="--angle:${angle}deg">
+      <div class="token-inner">
+        <div class="token-name">${escapeHtml(p.name)}</div>
+        <div class="token-hp" id="hp-${i}"></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function pointRevolverAt(idx, extraSpin = false) {
+  const target = playerAngle(idx, state.players.length);
+  // Shortest forward delta (always rotate clockwise so it feels alive)
+  let delta = ((target - (revolverAngle % 360)) + 360) % 360;
+  if (delta === 0) delta = 0;
+  if (extraSpin) delta += 720; // dramatic start-of-game/turn spin
+  else delta += 360; // one extra spin per turn — keeps motion going
+  revolverAngle += delta;
+  el.revolver.style.transform = `translate(-50%, -50%) rotate(${revolverAngle}deg)`;
 }
 
 function advance() {
@@ -125,24 +146,22 @@ function advance() {
   if (state.slotIndex >= state.chamber.length) {
     state.chamber = newChamber();
     state.slotIndex = 0;
-    pushLog(`New chamber. ${BULLETS} bullets reloaded.`);
+    pushLog(`New chamber. ${BULLETS} fresh rounds.`);
   }
 
   state.phase = "CLAIM";
   state.pendingClaim = null;
+  pointRevolverAt(state.turn);
   render();
 
-  const active = activePlayer();
-  if (active.isBot) botTimer = setTimeout(botClaim, 900);
+  if (activePlayer().isBot) botTimer = setTimeout(botClaim, 1300);
 }
 
 function botClaim() {
   const actualLoaded = state.chamber[state.slotIndex];
-  // Simple strategy: usually claim empty. Occasionally bluff/truth the opposite.
-  // Bots lean toward "empty" because it's the safer social move.
   let claim;
-  if (actualLoaded) claim = Math.random() < 0.7 ? "empty" : "loaded"; // often bluff
-  else claim = Math.random() < 0.85 ? "empty" : "loaded"; // mostly truth
+  if (actualLoaded) claim = Math.random() < 0.7 ? "empty" : "loaded";
+  else claim = Math.random() < 0.85 ? "empty" : "loaded";
   submitClaim(claim);
 }
 
@@ -153,18 +172,15 @@ function submitClaim(claim) {
   state.phase = "DECISION";
 
   const claimer = state.players[claimerIdx];
-  pushLog(`${claimer.name} claims: next slot is ${claim.toUpperCase()}.`);
+  pushLog(`${claimer.name} claims next slot is ${claim.toUpperCase()}.`);
   render();
 
-  const target = state.players[targetIdx];
-  if (target.isBot) botTimer = setTimeout(botDecide, 1100);
+  if (state.players[targetIdx].isBot) botTimer = setTimeout(botDecide, 1200);
 }
 
 function botDecide() {
   const { claim } = state.pendingClaim;
   const p = loadedProbability();
-  // If claimer says "empty" but odds of loaded are high → suspicious.
-  // If claimer says "loaded" but odds of loaded are low → suspicious.
   let challengeProb;
   if (claim === "empty") challengeProb = Math.max(0, p - 0.15);
   else challengeProb = Math.max(0, (1 - p) - 0.1);
@@ -182,23 +198,47 @@ function resolveDecision(decision) {
   if (decision === "challenge") {
     pushLog(`${target.name} calls the bluff.`);
     const liar = (claim === actual) ? target : claimer;
+    const liarIdx = (liar === target) ? targetIdx : claimerIdx;
     pushLog(`Slot reveals: ${actual.toUpperCase()}. ${liar.name} takes the hit.`);
     liar.hp -= 1;
+    animateHit(liarIdx);
     if (liar.hp <= 0) pushLog(`${liar.name} is out.`);
   } else {
     pushLog(`${target.name} lets it ride.`);
+    // Revolver swings to point at claimer before they pull
+    pointRevolverAt(claimerIdx);
     if (actualLoaded) {
       claimer.hp -= 1;
-      pushLog(`BANG. ${claimer.name} eats a round.`);
+      pushLog(`BANG. ${claimer.name} eats it.`);
+      setTimeout(() => animateHit(claimerIdx, true), 300);
       if (claimer.hp <= 0) pushLog(`${claimer.name} is out.`);
     } else {
       pushLog(`Click. Empty.`);
+      setTimeout(() => el.revolver.classList.add("click"), 300);
+      setTimeout(() => el.revolver.classList.remove("click"), 700);
     }
   }
   state.slotIndex++;
 
   nextTurn();
-  botTimer = setTimeout(advance, 1500);
+  botTimer = setTimeout(advance, 1800);
+}
+
+function animateHit(playerIdx, withFlash = false) {
+  const token = el.tokens.querySelector(`[data-idx="${playerIdx}"]`);
+  if (token) {
+    token.classList.add("hit");
+    setTimeout(() => token.classList.remove("hit"), 700);
+  }
+  if (withFlash) {
+    el.flash.classList.add("fire");
+    el.revolver.classList.add("recoil");
+    setTimeout(() => {
+      el.flash.classList.remove("fire");
+      el.revolver.classList.remove("recoil");
+    }, 400);
+  }
+  render(); // update HP
 }
 
 function pushLog(msg) {
@@ -207,38 +247,30 @@ function pushLog(msg) {
 }
 
 function render() {
-  renderPlayers();
-  renderChamber();
+  renderTokens();
   renderStatus();
   renderActions();
   renderLog();
 }
 
-function renderPlayers() {
-  el.players.innerHTML = state.players.map((p, i) => {
+function renderTokens() {
+  state.players.forEach((p, i) => {
+    const token = el.tokens.querySelector(`[data-idx="${i}"]`);
+    if (!token) return;
     const isActive = i === state.turn && p.hp > 0 && state.phase !== "GAME_OVER";
     const isTarget = state.pendingClaim && i === state.pendingClaim.targetIdx && state.phase === "DECISION";
     const dead = p.hp <= 0;
-    const hearts = "♥".repeat(Math.max(0, p.hp)) + "♡".repeat(Math.max(0, START_HP - p.hp));
-    const tag = isActive ? "claims" : isTarget ? "decides" : "";
-    return `<div class="player${isActive ? " active" : ""}${isTarget ? " target" : ""}${dead ? " dead" : ""}">
-      <div class="player-name">${escapeHtml(p.name)}</div>
-      <div class="player-hp">${hearts}</div>
-      <div class="player-tag">${tag}</div>
-    </div>`;
-  }).join("");
-}
-
-function renderChamber() {
-  el.chamber.innerHTML = state.chamber.map((isBullet, i) => {
-    const consumed = i < state.slotIndex;
-    const current = i === state.slotIndex && state.phase !== "GAME_OVER";
-    let cls = "slot";
-    if (consumed) cls += isBullet ? " consumed bullet" : " consumed empty";
-    if (current) cls += " current";
-    const symbol = consumed ? (isBullet ? "●" : "○") : "";
-    return `<div class="${cls}">${symbol}</div>`;
-  }).join("");
+    token.classList.toggle("active", isActive);
+    token.classList.toggle("target", isTarget);
+    token.classList.toggle("dead", dead);
+    const hpEl = token.querySelector(".token-hp");
+    hpEl.innerHTML = "";
+    for (let h = 0; h < START_HP; h++) {
+      const pip = document.createElement("span");
+      pip.className = "hp-pip" + (h < p.hp ? " filled" : "");
+      hpEl.appendChild(pip);
+    }
+  });
 }
 
 function renderStatus() {
@@ -252,7 +284,7 @@ function renderStatus() {
   const b = remainingBullets();
   const s = remainingSlots();
   const pct = s > 0 ? Math.round(100 * b / s) : 0;
-  el.status.textContent = `${b}/${s} loaded • next shot ${pct}%`;
+  el.status.textContent = `${b}/${s} loaded · next shot ${pct}%`;
 }
 
 function renderActions() {
@@ -261,14 +293,13 @@ function renderActions() {
     document.getElementById("play-again").onclick = () => startGame(state.players[0].name);
     return;
   }
-
   const active = activePlayer();
   if (state.phase === "CLAIM") {
     if (active.isBot) {
       el.actions.innerHTML = `<p class="muted">${escapeHtml(active.name)} is deciding…</p>`;
     } else {
       el.actions.innerHTML = `
-        <p class="muted">Your claim for the next slot:</p>
+        <p class="muted">Claim the next slot:</p>
         <div class="action-row">
           <button class="primary" id="claim-empty">Empty</button>
           <button class="primary danger" id="claim-loaded">Loaded</button>
@@ -283,7 +314,7 @@ function renderActions() {
     } else {
       const claimer = state.players[state.pendingClaim.claimerIdx];
       el.actions.innerHTML = `
-        <p class="muted">${escapeHtml(claimer.name)} says the slot is <b>${state.pendingClaim.claim.toUpperCase()}</b>.</p>
+        <p class="muted">${escapeHtml(claimer.name)} says: <b>${state.pendingClaim.claim.toUpperCase()}</b></p>
         <div class="action-row">
           <button class="primary" id="believe">Believe</button>
           <button class="primary danger" id="challenge">Challenge</button>

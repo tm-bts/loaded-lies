@@ -227,101 +227,219 @@ button.secondary:hover {
   margin-top: 1.2rem;
 }
 
-/* ======== Game ======== */
+/* ======== Game — top-down table ======== */
+#game-card {
+  background: rgba(8, 6, 5, 0.92);
+  border-color: rgba(168, 50, 40, 0.25);
+}
+
 .card.wide {
-  width: min(720px, 100%);
+  width: min(640px, 100%);
 }
 
-.players-row {
+.table-wrap {
   display: flex;
-  justify-content: space-around;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
-.player {
-  flex: 1;
-  text-align: center;
-  padding: 0.75rem 0.5rem;
-  border: 1px solid var(--field-border);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.02);
-  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+.game-table {
+  --size: min(420px, 80vw);
+  --radius: calc(var(--size) * 0.36); /* where player tokens sit */
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
 }
 
-.player.active {
-  border-color: var(--accent);
-  background: rgba(192, 57, 43, 0.08);
-  box-shadow: 0 0 20px rgba(192, 57, 43, 0.2);
+.table-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%,
+      #2a1a10 0%,
+      #1a0f08 55%,
+      #0a0605 100%);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(140, 90, 40, 0.15),
+    0 25px 80px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-.player.target {
-  border-color: var(--ink-dim);
-  background: rgba(255, 255, 255, 0.05);
+.table-felt {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 45%,
+      rgba(90, 35, 25, 0.35) 0%,
+      rgba(30, 12, 8, 0.6) 60%,
+      rgba(0, 0, 0, 0.8) 100%);
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.85),
+    inset 0 0 0 1px rgba(192, 57, 43, 0.08);
 }
 
-.player.dead {
-  opacity: 0.3;
+.revolver {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--size) * 0.22);
+  height: auto;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 54%; /* cylinder center */
+  transition: transform 1.2s cubic-bezier(0.65, 0.05, 0.25, 1);
+  filter:
+    drop-shadow(0 6px 10px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.revolver.recoil {
+  animation: recoil 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.revolver.click {
+  animation: click-jitter 0.4s ease-out;
+}
+
+@keyframes recoil {
+  0%   { transform: translate(-50%, -50%) rotate(var(--ang, 0deg)) scale(1); }
+  20%  { transform: translate(-50%, -50%) rotate(var(--ang, 0deg)) scale(1.05) translateY(-6px); }
+  100% { transform: translate(-50%, -50%) rotate(var(--ang, 0deg)) scale(1); }
+}
+
+@keyframes click-jitter {
+  0%, 100% { translate: 0 0; }
+  25%      { translate: 0 -2px; }
+  50%      { translate: 0 1px; }
+  75%      { translate: 0 -1px; }
+}
+
+#muzzle-flash {
+  transition: opacity 0.1s ease-out;
+}
+#muzzle-flash.fire {
+  animation: muzzle 0.35s ease-out;
+}
+
+@keyframes muzzle {
+  0%   { opacity: 0; r: 8; }
+  15%  { opacity: 1; r: 24; }
+  100% { opacity: 0; r: 30; }
+}
+
+/* player tokens around the table */
+#player-tokens {
+  position: absolute;
+  inset: 0;
+}
+
+.player-token {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: -2.75rem 0 0 -2.75rem;
+  transform: rotate(var(--angle)) translateY(calc(var(--radius) * -1)) rotate(calc(var(--angle) * -1));
+  transition: transform 0.4s, opacity 0.3s, filter 0.3s;
+}
+
+.token-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%,
+      rgba(60, 50, 45, 0.95) 0%,
+      rgba(20, 15, 12, 0.95) 100%);
+  border: 2px solid rgba(80, 60, 50, 0.6);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.8),
+    inset 0 0 12px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.player-token.active .token-inner {
+  border-color: #d4a340;
+  box-shadow:
+    0 0 24px rgba(212, 163, 64, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.8),
+    inset 0 0 12px rgba(60, 40, 10, 0.6);
+  background:
+    radial-gradient(circle at 50% 35%,
+      rgba(80, 60, 30, 0.95) 0%,
+      rgba(30, 20, 10, 0.95) 100%);
+}
+
+.player-token.target .token-inner {
+  border-color: rgba(192, 57, 43, 0.7);
+  box-shadow:
+    0 0 16px rgba(192, 57, 43, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.player-token.dead {
+  opacity: 0.35;
   filter: grayscale(1);
 }
 
-.player-name {
-  font-size: 0.9rem;
-  letter-spacing: 0.06em;
+.player-token.hit .token-inner {
+  animation: hit-shake 0.6s;
+}
+
+@keyframes hit-shake {
+  0%, 100% { transform: translate(0, 0); background: radial-gradient(circle at 50% 35%, rgba(60,50,45,0.95), rgba(20,15,12,0.95)); }
+  10%      { transform: translate(-4px, 2px); background: radial-gradient(circle at 50% 35%, rgba(192,57,43,0.6), rgba(40,10,5,0.95)); }
+  30%      { transform: translate(4px, -2px); }
+  50%      { transform: translate(-3px, 1px); }
+  70%      { transform: translate(2px, 2px); }
+}
+
+.token-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink);
-  margin-bottom: 0.35rem;
+  text-align: center;
+  padding: 0 0.25rem;
+  line-height: 1.1;
 }
 
-.player-hp {
-  font-size: 1.1rem;
-  color: var(--accent);
-  letter-spacing: 0.15em;
-}
-
-.player-tag {
-  margin-top: 0.35rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-  min-height: 1em;
-}
-
-.chamber {
+.token-hp {
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 1rem 0 0.75rem;
+  gap: 3px;
 }
 
-.slot {
-  width: 2.5rem;
-  height: 2.5rem;
+.hp-pip {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  border: 2px solid var(--field-border);
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.3);
 }
-
-.slot.current {
+.hp-pip.filled {
+  background: var(--accent);
+  box-shadow: 0 0 4px rgba(192, 57, 43, 0.7);
   border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(192, 57, 43, 0.6);
 }
-
-.slot.consumed.empty { color: var(--ink-dim); opacity: 0.5; }
-.slot.consumed.bullet { color: var(--accent); opacity: 0.8; }
 
 .game-status {
   text-align: center;
-  color: var(--ink-dim);
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  color: #d4a340;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   margin: 0 0 1rem;
+  font-family: "Cormorant Garamond", "Georgia", serif;
 }
 
 .game-actions {
