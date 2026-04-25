@@ -93,6 +93,40 @@ const pickN = (arr, n) => {
   return out;
 };
 
+const SHIRT_COLORS = ["#a83232", "#3a6abf", "#3a8a4a", "#7a3a8a", "#b88a2a", "#2a8a8a", "#8a4a2a", "#5a5a5a"];
+const SKIN_COLORS  = ["#d4a980", "#e6c79a", "#a87858", "#8a5a3a", "#5a3a2a", "#c89878"];
+const HAIR_COLORS  = ["#1a0e08", "#3a2a1a", "#7a4a2a", "#a87838", "#5a2a1a", "#2a2a2a", "#8a8a8a"];
+
+function makeFigureSVG(colors) {
+  const { shirt, skin, hair } = colors;
+  return `<svg class="token-figure" viewBox="0 0 16 24" shape-rendering="crispEdges">
+    <ellipse cx="8" cy="22.6" rx="5" ry="0.8" fill="rgba(0,0,0,0.7)"/>
+    <rect x="5" y="17" width="2" height="5" fill="#15100c"/>
+    <rect x="9" y="17" width="2" height="5" fill="#15100c"/>
+    <rect x="1" y="9"  width="2" height="6" fill="${shirt}"/>
+    <rect x="13" y="9" width="2" height="6" fill="${shirt}"/>
+    <rect x="1" y="14" width="2" height="2" fill="${skin}"/>
+    <rect x="13" y="14" width="2" height="2" fill="${skin}"/>
+    <rect x="3" y="9"  width="10" height="9" fill="${shirt}"/>
+    <rect x="3" y="14" width="10" height="1" fill="rgba(0,0,0,0.28)"/>
+    <rect x="6" y="8"  width="4"  height="1" fill="${skin}"/>
+    <rect x="5" y="3"  width="6"  height="6" fill="${skin}"/>
+    <rect x="4" y="2"  width="8"  height="2" fill="${hair}"/>
+    <rect x="4" y="3"  width="1"  height="2" fill="${hair}"/>
+    <rect x="11" y="3" width="1"  height="2" fill="${hair}"/>
+    <rect x="6" y="6"  width="1"  height="1" fill="#000"/>
+    <rect x="9" y="6"  width="1"  height="1" fill="#000"/>
+  </svg>`;
+}
+
+function rollColors() {
+  return {
+    shirt: pick(SHIRT_COLORS),
+    skin: pick(SKIN_COLORS),
+    hair: pick(HAIR_COLORS),
+  };
+}
+
 const el = {
   card: document.getElementById("game-card"),
   lobbyCard: document.getElementById("lobby-card"),
@@ -100,7 +134,10 @@ const el = {
   table: document.getElementById("game-table"),
   revolver: document.getElementById("revolver"),
   flash: document.getElementById("muzzle-flash"),
+  smoke: document.getElementById("smoke-puff"),
   tokens: document.getElementById("player-tokens"),
+  blood: document.getElementById("blood-layer"),
+  screenFlash: document.getElementById("screen-flash"),
   status: document.getElementById("game-status"),
   actions: document.getElementById("game-actions"),
   log: document.getElementById("game-log"),
@@ -115,6 +152,7 @@ let revolverAngle = 0; // cumulative rotation in degrees
 el.playBtn?.addEventListener("click", () => {
   el.lobbyCard.classList.add("hidden");
   el.card.classList.remove("hidden");
+  document.body.classList.add("in-game");
   startGame(el.userName.textContent?.trim() || "You");
 });
 
@@ -123,16 +161,19 @@ el.exitBtn?.addEventListener("click", () => {
   state = null;
   el.card.classList.add("hidden");
   el.lobbyCard.classList.remove("hidden");
+  document.body.classList.remove("in-game");
+  if (el.blood) el.blood.innerHTML = "";
 });
 
 function startGame(humanName) {
   clearTimeout(botTimer);
+  if (el.blood) el.blood.innerHTML = "";
   const [b1, b2] = pickN(BOT_NAMES, 2);
   state = {
     players: [
-      { id: "you", name: humanName, hp: START_HP, isBot: false },
-      { id: "bot1", name: b1, hp: START_HP, isBot: true },
-      { id: "bot2", name: b2, hp: START_HP, isBot: true },
+      { id: "you",  name: humanName, hp: START_HP, isBot: false, colors: rollColors() },
+      { id: "bot1", name: b1,        hp: START_HP, isBot: true,  colors: rollColors() },
+      { id: "bot2", name: b2,        hp: START_HP, isBot: true,  colors: rollColors() },
     ],
     turn: 0,
     chamber: newChamber(),
@@ -202,10 +243,9 @@ function layoutTokens() {
   el.tokens.innerHTML = state.players.map((p, i) => {
     const angle = playerAngle(i, n);
     return `<div class="player-token" data-idx="${i}" style="--angle:${angle}deg">
-      <div class="token-inner">
-        <div class="token-name">${escapeHtml(p.name)}</div>
-        <div class="token-hp" id="hp-${i}"></div>
-      </div>
+      ${makeFigureSVG(p.colors)}
+      <div class="token-name">${escapeHtml(p.name)}</div>
+      <div class="token-hp" id="hp-${i}"></div>
     </div>`;
   }).join("");
 }
@@ -316,16 +356,68 @@ function animateHit(playerIdx, withFlash = false) {
   if (token) {
     token.classList.add("hit");
     setTimeout(() => token.classList.remove("hit"), 700);
+    spawnBlood(token);
   }
   if (withFlash) {
     el.flash.classList.add("fire");
+    el.smoke?.classList.add("fire");
     el.revolver.classList.add("recoil");
+    el.screenFlash?.classList.add("fire");
+    document.body.classList.add("shake");
     setTimeout(() => {
       el.flash.classList.remove("fire");
+      el.smoke?.classList.remove("fire");
       el.revolver.classList.remove("recoil");
-    }, 400);
+      el.screenFlash?.classList.remove("fire");
+      document.body.classList.remove("shake");
+    }, 600);
   }
-  render(); // update HP
+  render(); // update HP pips
+}
+
+function spawnBlood(token) {
+  if (!el.blood) return;
+  const tableRect = el.table.getBoundingClientRect();
+  const tokenRect = token.getBoundingClientRect();
+  const cx = tokenRect.left + tokenRect.width / 2 - tableRect.left;
+  const cy = tokenRect.top  + tokenRect.height / 2 - tableRect.top;
+
+  // Drift drops outward
+  const count = 14;
+  for (let i = 0; i < count; i++) {
+    const drop = document.createElement("div");
+    drop.className = "blood";
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 30 + Math.random() * 70;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const size = 4 + Math.floor(Math.random() * 5);
+    const shade = ["#8b1a1a", "#a82a2a", "#6b0f0f", "#5a0a0a"][i % 4];
+    drop.style.setProperty("--dx", dx + "px");
+    drop.style.setProperty("--dy", dy + "px");
+    drop.style.left = (cx - size / 2) + "px";
+    drop.style.top  = (cy - size / 2) + "px";
+    drop.style.width = size + "px";
+    drop.style.height = size + "px";
+    drop.style.background = shade;
+    drop.style.animationDelay = (Math.random() * 80) + "ms";
+    el.blood.appendChild(drop);
+    setTimeout(() => drop.remove(), 1300);
+  }
+
+  // Persistent stains under the player
+  for (let i = 0; i < 4; i++) {
+    const stain = document.createElement("div");
+    stain.className = "blood-stain";
+    const size = 3 + Math.floor(Math.random() * 4);
+    const ox = (Math.random() - 0.5) * 30;
+    const oy = (Math.random() - 0.5) * 25 + 10;
+    stain.style.left = (cx + ox - size / 2) + "px";
+    stain.style.top  = (cy + oy - size / 2) + "px";
+    stain.style.width = size + "px";
+    stain.style.height = size + "px";
+    el.blood.appendChild(stain);
+  }
 }
 
 function pushLog(msg) {
@@ -359,6 +451,9 @@ function renderTokens() {
     }
   });
 }
+
+// Also clear blood on play-again
+function resetBlood() { if (el.blood) el.blood.innerHTML = ""; }
 
 function renderStatus() {
   if (state.phase === "GAME_OVER") {
