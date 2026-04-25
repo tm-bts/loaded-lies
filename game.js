@@ -98,24 +98,28 @@ const SKIN_COLORS  = ["#d4a980", "#e6c79a", "#a87858", "#8a5a3a", "#5a3a2a", "#c
 const HAIR_COLORS  = ["#1a0e08", "#3a2a1a", "#7a4a2a", "#a87838", "#5a2a1a", "#2a2a2a", "#8a8a8a"];
 
 function makeFigureSVG(colors) {
-  const { shirt, skin, hair } = colors;
-  return `<svg class="token-figure" viewBox="0 0 16 24" shape-rendering="crispEdges">
-    <ellipse cx="8" cy="22.6" rx="5" ry="0.8" fill="rgba(0,0,0,0.7)"/>
-    <rect x="5" y="17" width="2" height="5" fill="#15100c"/>
-    <rect x="9" y="17" width="2" height="5" fill="#15100c"/>
-    <rect x="1" y="9"  width="2" height="6" fill="${shirt}"/>
-    <rect x="13" y="9" width="2" height="6" fill="${shirt}"/>
-    <rect x="1" y="14" width="2" height="2" fill="${skin}"/>
-    <rect x="13" y="14" width="2" height="2" fill="${skin}"/>
-    <rect x="3" y="9"  width="10" height="9" fill="${shirt}"/>
-    <rect x="3" y="14" width="10" height="1" fill="rgba(0,0,0,0.28)"/>
-    <rect x="6" y="8"  width="4"  height="1" fill="${skin}"/>
-    <rect x="5" y="3"  width="6"  height="6" fill="${skin}"/>
-    <rect x="4" y="2"  width="8"  height="2" fill="${hair}"/>
-    <rect x="4" y="3"  width="1"  height="2" fill="${hair}"/>
-    <rect x="11" y="3" width="1"  height="2" fill="${hair}"/>
-    <rect x="6" y="6"  width="1"  height="1" fill="#000"/>
-    <rect x="9" y="6"  width="1"  height="1" fill="#000"/>
+  const { skin, hair } = colors;
+  // Top-down view of an NPC's head: hair-covered scalp from above,
+  // small skin patch & eyes hint at the front (south side of SVG).
+  return `<svg class="token-figure" viewBox="0 0 24 24" shape-rendering="auto">
+    <!-- shadow under head -->
+    <ellipse cx="12" cy="13.5" rx="11" ry="11" fill="rgba(0,0,0,0.85)"/>
+    <!-- shoulders ring (peeking under head) -->
+    <circle cx="12" cy="12" r="11.4" fill="#1a1310"/>
+    <!-- head/scalp -->
+    <circle cx="12" cy="12" r="9.4" fill="${hair}" stroke="#000" stroke-width="0.4"/>
+    <!-- subtle scalp highlight -->
+    <ellipse cx="10.5" cy="9.5" rx="3" ry="2" fill="rgba(255,255,255,0.08)"/>
+    <!-- forehead / face hint at south side (toward table center after rotation) -->
+    <path d="M7.5 16.2 Q12 18.5 16.5 16.2 Q15 14 12 14 Q9 14 7.5 16.2 Z" fill="${skin}" opacity="0.92"/>
+    <!-- ears -->
+    <ellipse cx="2.8" cy="12.2" rx="1.1" ry="1.7" fill="${skin}" opacity="0.9"/>
+    <ellipse cx="21.2" cy="12.2" rx="1.1" ry="1.7" fill="${skin}" opacity="0.9"/>
+    <!-- eyes -->
+    <circle cx="10" cy="15.5" r="0.6" fill="#0a0706"/>
+    <circle cx="14" cy="15.5" r="0.6" fill="#0a0706"/>
+    <!-- nose hint -->
+    <rect x="11.6" y="16.3" width="0.8" height="0.6" fill="rgba(0,0,0,0.4)"/>
   </svg>`;
 }
 

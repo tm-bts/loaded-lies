@@ -63,85 +63,94 @@
     </section>
 
     <section id="game-card" class="card wide hidden">
-      <div class="table-wrap">
-        <div id="game-table" class="game-table">
-          <div class="table-rim"></div>
-          <div class="table-felt"></div>
-          <svg id="revolver" class="revolver" viewBox="0 0 80 250" aria-hidden="true">
-            <defs>
-              <linearGradient id="steel" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#3a3a3a"/>
-                <stop offset="0.5" stop-color="#1c1c1c"/>
-                <stop offset="1" stop-color="#0a0a0a"/>
-              </linearGradient>
-              <linearGradient id="grip" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0" stop-color="#3a241a"/>
-                <stop offset="1" stop-color="#180c06"/>
-              </linearGradient>
-              <radialGradient id="flash" cx="50%" cy="50%" r="50%">
-                <stop offset="0"   stop-color="#fff5d0" stop-opacity="1"/>
-                <stop offset="0.4" stop-color="#ffaa33" stop-opacity="0.85"/>
-                <stop offset="0.7" stop-color="#c0392b" stop-opacity="0.45"/>
-                <stop offset="1"   stop-color="#c0392b" stop-opacity="0"/>
-              </radialGradient>
-              <radialGradient id="smoke" cx="50%" cy="50%" r="50%">
-                <stop offset="0"   stop-color="#bbb" stop-opacity="0.55"/>
-                <stop offset="1"   stop-color="#666" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
+      <div class="game-grid">
+        <div class="game-arena">
+          <div class="table-wrap">
+            <div id="game-table" class="game-table">
+              <div class="table-rim"></div>
+              <div class="table-felt"></div>
+              <svg id="revolver" class="revolver" viewBox="0 0 100 270" aria-hidden="true">
+                <defs>
+                  <linearGradient id="steel" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0"   stop-color="#1a1a1a"/>
+                    <stop offset="0.5" stop-color="#3a3a3a"/>
+                    <stop offset="1"   stop-color="#0a0a0a"/>
+                  </linearGradient>
+                  <linearGradient id="grip" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stop-color="#3a241a"/>
+                    <stop offset="1" stop-color="#180c06"/>
+                  </linearGradient>
+                  <radialGradient id="flash" cx="50%" cy="50%" r="50%">
+                    <stop offset="0"   stop-color="#fff5d0" stop-opacity="1"/>
+                    <stop offset="0.4" stop-color="#ffaa33" stop-opacity="0.85"/>
+                    <stop offset="0.7" stop-color="#c0392b" stop-opacity="0.45"/>
+                    <stop offset="1"   stop-color="#c0392b" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="smoke" cx="50%" cy="50%" r="50%">
+                    <stop offset="0"   stop-color="#bbb" stop-opacity="0.55"/>
+                    <stop offset="1"   stop-color="#666" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
 
-            <!-- muzzle smoke + flash -->
-            <circle id="smoke-puff" cx="40" cy="6" r="0" fill="url(#smoke)" opacity="0"/>
-            <circle id="muzzle-flash" cx="40" cy="6" r="0" fill="url(#flash)" opacity="0"/>
+                <!-- muzzle effects -->
+                <circle id="smoke-puff"   cx="50" cy="2" r="0" fill="url(#smoke)" opacity="0"/>
+                <circle id="muzzle-flash" cx="50" cy="2" r="0" fill="url(#flash)" opacity="0"/>
 
-            <!-- top picatinny-rail barrel block -->
-            <rect x="28" y="6" width="24" height="115" fill="url(#steel)" stroke="#000" stroke-width="1"/>
-            <!-- rail slots -->
-            <rect x="34" y="14" width="12" height="3" fill="#000"/>
-            <rect x="34" y="22" width="12" height="3" fill="#000"/>
-            <rect x="34" y="30" width="12" height="3" fill="#000"/>
-            <rect x="34" y="38" width="12" height="3" fill="#000"/>
-            <rect x="34" y="46" width="12" height="3" fill="#000"/>
-            <rect x="34" y="54" width="12" height="3" fill="#000"/>
-            <rect x="34" y="62" width="12" height="3" fill="#000"/>
-            <rect x="34" y="70" width="12" height="3" fill="#000"/>
-            <!-- front sight -->
-            <rect x="36" y="2"  width="8"  height="6"  fill="#0a0a0a"/>
-            <rect x="38" y="0"  width="4"  height="3"  fill="#a83232"/>
-            <!-- muzzle -->
-            <rect x="36" y="5" width="8" height="3" fill="#000"/>
+                <!-- front sight -->
+                <rect x="46" y="0" width="8"  height="4"  fill="#0a0a0a"/>
+                <rect x="48" y="-1" width="4" height="2"  fill="#a83232"/>
 
-            <!-- cylinder housing -->
-            <rect x="14" y="120" width="52" height="58" fill="#141414" stroke="#000" stroke-width="1"/>
-            <!-- cylinder -->
-            <circle cx="40" cy="148" r="26" fill="url(#steel)" stroke="#000" stroke-width="1.5"/>
-            <circle cx="40" cy="148" r="7"  fill="#000"/>
-            <circle cx="40" cy="148" r="2"  fill="#5a5148"/>
-            <!-- 6 chamber holes -->
-            <circle cx="40" cy="130" r="3.6" fill="#000"/>
-            <circle cx="56" cy="139" r="3.6" fill="#000"/>
-            <circle cx="56" cy="157" r="3.6" fill="#000"/>
-            <circle cx="40" cy="166" r="3.6" fill="#000"/>
-            <circle cx="24" cy="157" r="3.6" fill="#000"/>
-            <circle cx="24" cy="139" r="3.6" fill="#000"/>
+                <!-- barrel (slim, with center rib) -->
+                <rect x="44" y="4" width="12" height="115" fill="url(#steel)" stroke="#000" stroke-width="0.8"/>
+                <rect x="49" y="10" width="2" height="105" fill="#000" opacity="0.55"/>
+                <rect x="44" y="6" width="2" height="113" fill="#fff" opacity="0.06"/>
 
-            <!-- trigger frame + guard -->
-            <rect x="22" y="178" width="36" height="20" fill="#141414" stroke="#000" stroke-width="1"/>
-            <ellipse cx="40" cy="190" rx="8" ry="6" fill="#0a0a0a" stroke="#000" stroke-width="1.5"/>
+                <!-- frame top strap (between barrel and cylinder) -->
+                <path d="M40 116 L60 116 L62 124 L38 124 Z" fill="#1a1a1a" stroke="#000" stroke-width="0.6"/>
 
-            <!-- angular grip -->
-            <path d="M22 198 L18 240 Q40 250 62 240 L58 198 Z" fill="url(#grip)" stroke="#000" stroke-width="1.5"/>
-            <path d="M24 208 L56 208 M24 218 L56 218 M24 228 L56 228" stroke="#000" stroke-width="0.5" opacity="0.5"/>
-            <circle cx="40" cy="222" r="3" fill="none" stroke="#a83232" stroke-width="1" opacity="0.6"/>
-          </svg>
-          <div id="player-tokens"></div>
-          <div id="blood-layer" class="blood-layer"></div>
+                <!-- cylinder (big round bulge) -->
+                <circle cx="50" cy="150" r="27" fill="url(#steel)" stroke="#000" stroke-width="1.5"/>
+                <circle cx="50" cy="150" r="22" fill="none" stroke="#000" stroke-width="0.5" opacity="0.4"/>
+                <circle cx="50" cy="150" r="7"  fill="#000"/>
+                <circle cx="50" cy="150" r="2"  fill="#5a5148"/>
+                <!-- 6 chambers -->
+                <circle cx="50" cy="131" r="3.6" fill="#000"/>
+                <circle cx="66" cy="140" r="3.6" fill="#000"/>
+                <circle cx="66" cy="160" r="3.6" fill="#000"/>
+                <circle cx="50" cy="169" r="3.6" fill="#000"/>
+                <circle cx="34" cy="160" r="3.6" fill="#000"/>
+                <circle cx="34" cy="140" r="3.6" fill="#000"/>
+
+                <!-- frame around cylinder bottom (going to trigger area) -->
+                <path d="M28 175 L72 175 L70 192 L30 192 Z" fill="#1a1a1a" stroke="#000" stroke-width="0.6"/>
+
+                <!-- trigger guard -->
+                <ellipse cx="50" cy="200" rx="11" ry="7" fill="#0a0a0a" stroke="#000" stroke-width="1.5"/>
+                <rect x="48" y="194" width="4" height="6" fill="#1a1a1a"/>
+
+                <!-- swept-back grip (trapezoidal) -->
+                <path d="M30 192 L24 220 L26 252 Q50 264 74 252 L76 220 L70 192 Z" fill="url(#grip)" stroke="#000" stroke-width="1.5"/>
+                <!-- checkering -->
+                <path d="M28 210 L72 210 M26 224 L74 224 M25 238 L75 238 M26 250 L74 250" stroke="#000" stroke-width="0.5" opacity="0.45"/>
+                <!-- emblem on grip -->
+                <circle cx="50" cy="232" r="3" fill="none" stroke="#a83232" stroke-width="0.8" opacity="0.7"/>
+                <!-- back-strap shading -->
+                <path d="M30 192 L24 220 L26 252 Q50 264 74 252 L76 220 L70 192" fill="none" stroke="#fff" stroke-width="0.5" opacity="0.05"/>
+              </svg>
+              <div id="player-tokens"></div>
+              <div id="blood-layer" class="blood-layer"></div>
+            </div>
+          </div>
+          <p id="game-status" class="game-status"></p>
+          <div id="game-actions" class="game-actions"></div>
         </div>
+
+        <aside class="game-side">
+          <h3 class="side-title">Table Talk</h3>
+          <div id="game-log" class="game-log" aria-live="polite"></div>
+          <button id="game-exit" class="secondary">Quit to Lobby</button>
+        </aside>
       </div>
-      <p id="game-status" class="game-status"></p>
-      <div id="game-actions" class="game-actions"></div>
-      <div id="game-log" class="game-log" aria-live="polite"></div>
-      <button id="game-exit" class="secondary">Quit to Lobby</button>
       <div id="screen-flash" class="screen-flash"></div>
     </section>
   </main>
